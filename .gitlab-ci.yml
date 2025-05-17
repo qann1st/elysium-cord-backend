@@ -1,0 +1,21 @@
+stages:
+  - deploy
+
+default:
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client wget gnupg -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $VM_IPADDRESS >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+deploy:
+  stage: deploy
+  script:
+    - ssh $SSH_PRIVATE_USER@$SSH_PRIVATE_HOST "
+      bash ~/deploy.sh
+      "
+  only:
+    - main
